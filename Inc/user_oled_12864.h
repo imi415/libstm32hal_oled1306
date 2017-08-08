@@ -4,6 +4,8 @@
 #define OLED_SLAVE_ADDR 0x78
 #define OLED_I2C_INTERFACE hi2c1
 
+#define OLED_MAX_TIMEOUT_TICKS 1000
+
 void OLED_Init(void);
 void OLED_Position_Set(uint8_t posX, uint8_t posY);
 void OLED_Fill(uint8_t fillData);

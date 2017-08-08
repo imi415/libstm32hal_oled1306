@@ -202,8 +202,11 @@ void OLED_String_Display(uint8_t posX, uint8_t posY, char * buf) {
 void OLED_Write_Command(uint8_t cmd) {
   uint8_t buf[2] = {0x00, cmd};
   HAL_I2C_Master_Transmit_DMA(&OLED_I2C_INTERFACE, OLED_SLAVE_ADDR, buf, 0x02);
+  uint32_t tickStart = HAL_GetTick();
   while (!txFlag) {
-    //
+    if ((HAL_GetTick() - tickStart) > OLED_MAX_TIMEOUT_TICKS) {
+      break; // Oops!
+    }
   }
   txFlag = 0;
 }
@@ -211,8 +214,11 @@ void OLED_Write_Command(uint8_t cmd) {
 void OLED_Write_Data(uint8_t data) {
   uint8_t buf[2] = {0x40, data};
   HAL_I2C_Master_Transmit_DMA(&OLED_I2C_INTERFACE, OLED_SLAVE_ADDR, buf, 0x02);
+  uint32_t tickStart = HAL_GetTick();
   while (!txFlag) {
-    //
+    if ((HAL_GetTick() - tickStart) > OLED_MAX_TIMEOUT_TICKS) {
+      break; // Oops!
+    }
   }
   txFlag = 0;
 }
