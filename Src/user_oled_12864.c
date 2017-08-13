@@ -100,7 +100,7 @@ const unsigned char fontArray[][6] =
   {0x14, 0x14, 0x14, 0x14, 0x14, 0x14}
 };
 
-void OLED_Init(void) {
+HAL_StatusTypeDef OLED_Init(OLED_HandleTypeDef * oled) {
   HAL_Delay(100);
 
   // Notice: I have no SSD1307 datasheet so far, and these are magic for now.
@@ -199,9 +199,10 @@ void OLED_String_Display(uint8_t posX, uint8_t posY, char * buf) {
 //  }
 }
 
-void OLED_Write_Command(uint8_t cmd) {
+HAL_StatusTypeDef OLED_Write_Command(OLED_HandleTypeDef * oled, uint8_t cmd) {
+  __HAL_LOCK(oled);
   uint8_t buf[2] = {0x00, cmd};
-  HAL_I2C_Master_Transmit_DMA(&OLED_I2C_INTERFACE, OLED_SLAVE_ADDR, buf, 0x02);
+  HAL_I2C_Master_Transmit_DMA(oled -> Interface, oled -> SlaveAddress, buf, 0x02);
   uint32_t tickStart = HAL_GetTick();
   while (!txFlag) {
     if ((HAL_GetTick() - tickStart) > OLED_MAX_TIMEOUT_TICKS) {
@@ -211,9 +212,9 @@ void OLED_Write_Command(uint8_t cmd) {
   txFlag = 0;
 }
 
-void OLED_Write_Data(uint8_t data) {
+void OLED_Write_Data(OLED_HandleTypeDef * oled, uint8_t data) {
   uint8_t buf[2] = {0x40, data};
-  HAL_I2C_Master_Transmit_DMA(&OLED_I2C_INTERFACE, OLED_SLAVE_ADDR, buf, 0x02);
+  HAL_I2C_Master_Transmit_DMA(oled -> Interface, oled -> SlaveAddress, buf, 0x02);
   uint32_t tickStart = HAL_GetTick();
   while (!txFlag) {
     if ((HAL_GetTick() - tickStart) > OLED_MAX_TIMEOUT_TICKS) {
@@ -223,15 +224,16 @@ void OLED_Write_Data(uint8_t data) {
   txFlag = 0;
 }
 
-void HAL_I2C_MasterTxCpltCallback(I2C_HandleTypeDef *hi2c) {
-  if (hi2c == &OLED_I2C_INTERFACE) {
-    txFlag = 1;
-  }
+HAL_StatusTypeDef OLED_WaitOnFlagUntilTimeout(OLED_HandleTypeDef * oled, uint8_t Flag, FlagStatus Status, uint32_t Timeout, uint32_t TickStart) {
+  while ((__OLED_GET_FLAG(oled, Flag) ? SET : RESET) == Status) {
+
 }
 
-void HAL_I2C_MasterRxCpltCallback(I2C_HandleTypeDef *hi2c) {
-  if (hi2c == &OLED_I2C_INTERFACE) {
-    rxFlag = 1;
-  }
+void OLED_TransmitCpltCallback(OLED_HandleTypeDef * oled) {
+  oled -> Flag |= OLED_FLAG_TRANSMIT_COMPLETE;
+}
+
+void OLED_ReceiveCpltCallback(OLED_HandleTypeDef * oled) {
+  oled -> State = OLED_RECEIVE_COMPLETE;
 }
 
