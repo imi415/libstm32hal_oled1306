@@ -22,19 +22,19 @@ typedef struct
 {
   OLED_InitTypeDef Init;
   uint8_t Brightness;
-
-  OLED_Status_TypeDef State;
   uint8_t Flag;
+  OLED_StateTypeDef State;
   HAL_LockTypeDef Lock;
-}
+} OLED_HandleTypeDef;
 
 typedef enum
 {
-  OLED_STATE_TRANSMIT_COMPLETE;
-  OLED_STATE_RECEIVE_COMPLETE;
-  OLED_STATE_READY = 0U;
-  OLED_STATE_BUSY;
-} OLED_StatusTypeDef;
+  OLED_STATE_RESET = 0x00U;
+  OLED_STATE_READY = 0x01U;
+  OLED_STATE_BUSY = 0x02U;
+  OLED_STATE_BUSY_TX = 0x04U;
+  OLED_STATE_BUSY_RX = 0x08U;
+} OLED_StateTypeDef;
 
 void OLED_Init(void);
 void OLED_Position_Set(uint8_t posX, uint8_t posY);
@@ -42,8 +42,10 @@ void OLED_Fill(uint8_t fillData);
 void OLED_Clear(void);
 void OLED_Power(uint8_t powerState);
 void OLED_String_Display(uint8_t posX, uint8_t posY, char * buf);
-void OLED_Write_Command(uint8_t cmd);
-void OLED_Write_Data(uint8_t data);
+HAL_StatusTypeDef OLED_WriteCommand(OLED_HandleTypeDef * oled, uint8_t cmd);
+HAL_StatusTypeDef OLED_WriteData(OLED_HandleTypeDef * oled, uint8_t data);
+
+HAL_StatusTypeDef OLED_WaitOnFlagUntilTimeout(OLED_HandleTypeDef * oled, uint8_t Flag, FlagStatus Status, uint32_t Timeout, uint32_t TickStart);
 
 #endif
 

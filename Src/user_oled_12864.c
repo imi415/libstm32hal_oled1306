@@ -104,49 +104,49 @@ HAL_StatusTypeDef OLED_Init(OLED_HandleTypeDef * oled) {
   HAL_Delay(100);
 
   // Notice: I have no SSD1307 datasheet so far, and these are magic for now.
-  OLED_Write_Command(0xAE);
-  OLED_Write_Command(0x20);
-  OLED_Write_Command(0x10);
-  OLED_Write_Command(0xB0);
-  OLED_Write_Command(0xC8);
-  OLED_Write_Command(0x00);
-  OLED_Write_Command(0x10);
-  OLED_Write_Command(0x40);
-  OLED_Write_Command(0x81);
-  OLED_Write_Command(0xFF);
-  OLED_Write_Command(0xA1);
-  OLED_Write_Command(0xA6);
-  OLED_Write_Command(0xA8);
-  OLED_Write_Command(0x3F);
-  OLED_Write_Command(0xA4);
-  OLED_Write_Command(0xD3);
-  OLED_Write_Command(0x00);
-  OLED_Write_Command(0xD5);
-  OLED_Write_Command(0xF0);
-  OLED_Write_Command(0xD9);
-  OLED_Write_Command(0x22);
-  OLED_Write_Command(0xDA);
-  OLED_Write_Command(0x12);
-  OLED_Write_Command(0xDB);
-  OLED_Write_Command(0x20);
-  OLED_Write_Command(0x8D);
-  OLED_Write_Command(0x14);
-  OLED_Write_Command(0xAF);
+  OLED_WriteCommand(0xAE);
+  OLED_WriteCommand(0x20);
+  OLED_WriteCommand(0x10);
+  OLED_WriteCommand(0xB0);
+  OLED_WriteCommand(0xC8);
+  OLED_WriteCommand(0x00);
+  OLED_WriteCommand(0x10);
+  OLED_WriteCommand(0x40);
+  OLED_WriteCommand(0x81);
+  OLED_WriteCommand(0xFF);
+  OLED_WriteCommand(0xA1);
+  OLED_WriteCommand(0xA6);
+  OLED_WriteCommand(0xA8);
+  OLED_WriteCommand(0x3F);
+  OLED_WriteCommand(0xA4);
+  OLED_WriteCommand(0xD3);
+  OLED_WriteCommand(0x00);
+  OLED_WriteCommand(0xD5);
+  OLED_WriteCommand(0xF0);
+  OLED_WriteCommand(0xD9);
+  OLED_WriteCommand(0x22);
+  OLED_WriteCommand(0xDA);
+  OLED_WriteCommand(0x12);
+  OLED_WriteCommand(0xDB);
+  OLED_WriteCommand(0x20);
+  OLED_WriteCommand(0x8D);
+  OLED_WriteCommand(0x14);
+  OLED_WriteCommand(0xAF);
 }
 
 void OLED_Position_Set(uint8_t posX, uint8_t posY){
-  OLED_Write_Command(0xB0 + posY);
-  OLED_Write_Command(((posX & 0xF0) >> 0x04) | 0x10);
-  OLED_Write_Command((posX & 0x0F) | 0x01);
+  OLED_WriteCommand(0xB0 + posY);
+  OLED_WriteCommand(((posX & 0xF0) >> 0x04) | 0x10);
+  OLED_WriteCommand((posX & 0x0F) | 0x01);
 }
 
 void OLED_Fill(uint8_t fillData) {
   for (uint8_t i = 0; i < 8; i ++) {
-    OLED_Write_Command(0xB0 + i);
-    OLED_Write_Command(0x00);
-    OLED_Write_Command(0x10);
+    OLED_WriteCommand(0xB0 + i);
+    OLED_WriteCommand(0x00);
+    OLED_WriteCommand(0x10);
     for (uint8_t j = 0; j < 128; j ++) {
-      OLED_Write_Data(fillData);
+      OLED_WriteData(fillData);
     }
   }
 }
@@ -156,16 +156,16 @@ void OLED_Clear(void) {
 }
 
 void OLED_Power(uint8_t powerState) {
-  OLED_Write_Command(0x8D);
+  OLED_WriteCommand(0x8D);
 
   switch (powerState) {
     case 1:
-      OLED_Write_Command(0x14);
-      OLED_Write_Command(0xAF);
+      OLED_WriteCommand(0x14);
+      OLED_WriteCommand(0xAF);
       break;
     case 0:
-      OLED_Write_Command(0x10);
-      OLED_Write_Command(0xAE);
+      OLED_WriteCommand(0x10);
+      OLED_WriteCommand(0xAE);
       break;
   }
 }
@@ -180,7 +180,7 @@ void OLED_String_Display(uint8_t posX, uint8_t posY, char * buf) {
     }
     OLED_Position_Set(posX, posY);
     for (uint8_t j = 0; j < 6; j ++) {
-      OLED_Write_Data(fontArray[ch][j]);
+      OLED_WriteData(fontArray[ch][j]);
     }
     posX += 6;
     i ++;
@@ -199,7 +199,7 @@ void OLED_String_Display(uint8_t posX, uint8_t posY, char * buf) {
 //  }
 }
 
-HAL_StatusTypeDef OLED_Write_Command(OLED_HandleTypeDef * oled, uint8_t cmd) {
+HAL_StatusTypeDef OLED_WriteCommand(OLED_HandleTypeDef * oled, uint8_t cmd) {
   __HAL_LOCK(oled);
   uint8_t buf[2] = {0x00, cmd};
   HAL_I2C_Master_Transmit_DMA(oled -> Interface, oled -> SlaveAddress, buf, 0x02);
@@ -210,9 +210,11 @@ HAL_StatusTypeDef OLED_Write_Command(OLED_HandleTypeDef * oled, uint8_t cmd) {
     }
   }
   txFlag = 0;
+  __HAL_UNLOCK(oled);
 }
 
-void OLED_Write_Data(OLED_HandleTypeDef * oled, uint8_t data) {
+HAL_StatusTypeDef OLED_WriteData(OLED_HandleTypeDef * oled, uint8_t data) {
+  __HAL_LOCK(oled);
   uint8_t buf[2] = {0x40, data};
   HAL_I2C_Master_Transmit_DMA(oled -> Interface, oled -> SlaveAddress, buf, 0x02);
   uint32_t tickStart = HAL_GetTick();
@@ -222,10 +224,16 @@ void OLED_Write_Data(OLED_HandleTypeDef * oled, uint8_t data) {
     }
   }
   txFlag = 0;
+  __HAL_UNLOCK(oled);
 }
 
 HAL_StatusTypeDef OLED_WaitOnFlagUntilTimeout(OLED_HandleTypeDef * oled, uint8_t Flag, FlagStatus Status, uint32_t Timeout, uint32_t TickStart) {
   while ((__OLED_GET_FLAG(oled, Flag) ? SET : RESET) == Status) {
+    if (HAL_GetTick() - Timeout > TickStart) {
+      return HAL_TIMEOUT;
+    }
+  }
+  return HAL_OK;
 
 }
 
