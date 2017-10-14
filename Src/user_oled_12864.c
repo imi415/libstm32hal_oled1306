@@ -2,9 +2,6 @@
 #include "user_board.h"
 #include "user_oled_12864.h"
 
-uint8_t rxFlag = 0x00;
-uint8_t txFlag = 0x00;
-
 const unsigned char fontArray[][6] =
 {
   {0x00, 0x00, 0x00, 0x00, 0x00, 0x00},
@@ -103,6 +100,7 @@ const unsigned char fontArray[][6] =
 
 void OLED_Init(OLED_HandleTypeDef * oled) {
   oled -> Lock = 0;
+  oled -> TxFlag = 0;
   HAL_Delay(100);
   // Notice: I have no SSD1307 datasheet so far, and these are magic for now.
   OLED_Write_Command(oled, 0xAE);
@@ -186,18 +184,6 @@ void OLED_String_Display(OLED_HandleTypeDef * oled, uint8_t posX, uint8_t posY, 
     posX += 6;
     i ++;
   }
-//  uint8_t c = 0, i = 0, j = 0;
-//  while(buf[j] != '\0') {
-//    c = buf[j] - 32;
-//    if(posX > 126) {
-//      posX = 0;
-//      posY ++;
-//    }
-//    OLED_Position_Set(posX,posY);
-//    for(i=0;i<6;i++) OLED_Write_Data(oled, fontArray[c][i]);
-//    posX += 6;
-//    j++;
-//  }
 }
 
 HAL_StatusTypeDef OLED_Write_Command(OLED_HandleTypeDef * oled, uint8_t cmd) {
