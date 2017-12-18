@@ -6,6 +6,10 @@
 
 #define OLED_MAX_TIMEOUT_TICKS 1000
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 typedef struct {
   HAL_LockTypeDef Lock;
   uint8_t TxFlag;
@@ -19,4 +23,9 @@ void OLED_Power(OLED_HandleTypeDef * oled, uint8_t powerState);
 void OLED_String_Display(OLED_HandleTypeDef * oled, uint8_t posX, uint8_t posY, char * buf);
 HAL_StatusTypeDef OLED_Write_Command(OLED_HandleTypeDef * oled, uint8_t cmd);
 HAL_StatusTypeDef OLED_Write_Data(OLED_HandleTypeDef * oled, uint8_t data);
+
+#ifdef __cplusplus
+}
+#endif
+
 #endif
