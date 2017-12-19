@@ -98,7 +98,9 @@ const unsigned char fontArray[][6] =
   {0x14, 0x14, 0x14, 0x14, 0x14, 0x14}
 };
 
-void OLED_Init(OLED_HandleTypeDef * oled) {
+void OLED_Init(OLED_HandleTypeDef * oled, I2C_HandleTypeDef * hi2c, uint8_t addr) {
+  oled -> Instance = hi2c;
+  oled -> Address = addr;
   oled -> Lock = 0;
   oled -> TxFlag = 0;
   HAL_Delay(100);
@@ -189,7 +191,11 @@ void OLED_String_Display(OLED_HandleTypeDef * oled, uint8_t posX, uint8_t posY, 
 HAL_StatusTypeDef OLED_Write_Command(OLED_HandleTypeDef * oled, uint8_t cmd) {
   __HAL_LOCK(oled);
   uint8_t buf[2] = {0x00, cmd};
-  HAL_I2C_Master_Transmit_DMA(&OLED_I2C_INTERFACE, OLED_SLAVE_ADDR, buf, 0x02);
+#ifdef BOARD_OLED_USE_DMA
+  HAL_I2C_Master_Transmit_DMA(oled -> Instance, oled -> Address, buf, 0x02);
+#else
+  HAL_I2C_Master_Transmit_IT(oled -> Instance, oled -> Address, buf, 0x02);
+#endif
   uint32_t tickStart = HAL_GetTick();
   while (!oled -> TxFlag) {
     if ((HAL_GetTick() - tickStart) > OLED_MAX_TIMEOUT_TICKS) {
@@ -204,7 +210,11 @@ HAL_StatusTypeDef OLED_Write_Command(OLED_HandleTypeDef * oled, uint8_t cmd) {
 HAL_StatusTypeDef OLED_Write_Data(OLED_HandleTypeDef * oled, uint8_t data) {
   __HAL_LOCK(oled);
   uint8_t buf[2] = {0x40, data};
-  HAL_I2C_Master_Transmit_DMA(&OLED_I2C_INTERFACE, OLED_SLAVE_ADDR, buf, 0x02);
+#ifdef BOARD_OLED_USE_DMA
+  HAL_I2C_Master_Transmit_DMA(oled -> Instance, oled -> Address, buf, 0x02);
+#else
+  HAL_I2C_Master_Transmit_IT(oled -> Instance, oled -> Address, buf, 0x02);
+#endif
   uint32_t tickStart = HAL_GetTick();
   while (!oled -> TxFlag) {
     if ((HAL_GetTick() - tickStart) > OLED_MAX_TIMEOUT_TICKS) {
